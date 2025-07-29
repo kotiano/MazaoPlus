@@ -1,0 +1,45 @@
+stages:
+  ingest_data:
+    cmd: python src/data/data_ingestion.py
+    outs:
+      - data/raw/train_data.csv
+      - data/raw/test_data.csv
+  preprocess_data:
+    cmd: python src/data/data_preprocessing.py
+    deps:
+      - data/raw/train_data.csv
+      - data/raw/test_data.csv
+      - src/data/data_ingestion.py
+      - src/data/data_preprocessing.py
+    outs:
+      - data/processed/train_images.npy
+      - data/processed/train_labels.npy
+      - data/processed/val_images.npy
+      - data/processed/val_labels.npy
+      - data/processed/test_images.npy
+      - data/processed/test_labels.npy
+      - data/processed/class_names.json
+  train_model:
+    cmd: python src/model/model_building.py
+    deps:
+      - data/processed/train_images.npy
+      - data/processed/train_labels.npy
+      - data/processed/val_images.npy
+      - data/processed/val_labels.npy
+      - data/processed/test_images.npy
+      - data/processed/test_labels.npy
+      - src/model/model_building.py
+    outs:
+      - data/models/pest_classifier.h5
+  evaluate_model:
+    cmd: python src/model/model_evaluation.py
+    deps:
+      - data/processed/test_images.npy
+      - data/processed/test_labels.npy
+      - data/processed/class_names.json
+      - data/models/pest_classifier.h5
+      - src/model/model_evaluation.py
+    outs:
+      - data/evaluation/metrics.json
+      - data/evaluation/classification_report.json
+      - data/evaluation/confusion_matrix.png
