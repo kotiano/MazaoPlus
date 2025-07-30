@@ -7,6 +7,7 @@ import logging
 from typing import Tuple, List
 from pathlib import Path
 import mlflow 
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
