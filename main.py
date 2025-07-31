@@ -1,6 +1,7 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+import uvicorn
+from app.utils.config import load_config
+from app.database import Base, engine
 from app.routes import predict
 from app.utils.logger import setup_logger
 
@@ -14,6 +15,14 @@ app = FastAPI(
 app.include_router(predict.router, prefix="/v1")
 
 logger = setup_logger()
+
+
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize database: {e}")
+    raise
 
 @app.on_event("startup")
 async def startup_event():
@@ -29,8 +38,8 @@ async def health_check():
     return {"status": "healthy"}
 
 if __name__ == "__main__":
-    import uvicorn
-    from app.utils.config import load_config
+
     config = load_config()
     port = config.get("api_port", 8000)
     uvicorn.run(app, host="0.0.0.0", port=port)
+

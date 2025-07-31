@@ -67,7 +67,7 @@ async def predict_pest(
 
         return PestPredictionResponse(
             pest=result["pest"],
-            confidence=float(result["confidence"].rstrip("%")) / 100, 
+            confidence=str(float(result["confidence"].rstrip("%")) / 100),
             message="Pest prediction successful",
             recommendation=result["recommendation"],
             image_url=str(file_path)
@@ -114,7 +114,7 @@ async def predict_disease(
             predicted_class=result["disease"],
             crop_type=None,  
             date=datetime.now(timezone.utc),
-            confidence=float(result["confidence"].rstrip("%")) / 100,  
+            confidence=str(float(result["confidence"].rstrip("%")) / 100),  
             image_url=str(file_path),
             recommendation=result["recommendation"]
         )
