@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict
 from PIL import Image
 import io
-from api.app.utils.logging import setup_logger
+from app.utils.logger import setup_logger
 
 logger = setup_logger()
 
@@ -64,7 +64,7 @@ PEST_RECOMMENDATIONS = {
 }
 
 class PestPredictor:
-    def __init__(self, model_path: str = "data/models/pest_classifier.h5"):
+    def __init__(self, model_path: str = "/home/jude/Projects/MazaoPlus/src/models/judebest.keras"):
         self.model_path = Path(model_path)
         self.model = None
         self.preprocess_input = tf.keras.applications.efficientnet_v2.preprocess_input

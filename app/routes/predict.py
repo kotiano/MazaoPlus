@@ -3,21 +3,24 @@ from ..schemas import PestPredictionResponse, ErrorResponse, DiseasePredictionRe
 from ..repository.pest_prediction import PestPredictor
 from ..repository.disease_prediction import DiseasePredictor
 from ..models import PestDetectionResult, DiseaseDetectionResult
-from .utils.logging import setup_logger
+from ..utils.logger import setup_logger
 from ..database import get_db
 from sqlalchemy.orm import Session
-import uuid
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
+import uuid
 
 router = APIRouter(prefix="/predict", tags=["prediction"])
 logger = setup_logger()
 
+_pest_predictor = PestPredictor()
+_disease_predictor = DiseasePredictor()
+
 def get_pest_predictor():
-    return PestPredictor()
+    return _pest_predictor
 
 def get_disease_predictor():
-    return DiseasePredictor()
+    return _disease_predictor
 
 @router.post("/pest", response_model=PestPredictionResponse)
 async def predict_pest(
@@ -28,8 +31,11 @@ async def predict_pest(
     try:
         logger.info(f"Processing pest prediction for file: {file.filename}")
         if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="File must be an image")
-        
+            raise HTTPException(status_code=400, detail=ErrorResponse(error="File must be an image").dict())
+        allowed_extensions = {".jpg", ".jpeg", ".png"}
+        if not any(file.filename.lower().endswith(ext) for ext in allowed_extensions):
+            raise HTTPException(status_code=400, detail=ErrorResponse(error="Invalid file extension").dict())
+
         upload_dir = Path("data/uploads")
         upload_dir.mkdir(exist_ok=True)
         file_id = str(uuid.uuid4())
@@ -38,28 +44,39 @@ async def predict_pest(
         image_data = await file.read()
         with open(file_path, "wb") as f:
             f.write(image_data)
-        
 
         result = predictor.predict(image_data)
+        required_keys = {"pest", "confidence", "recommendation"}
         if "error" in result:
-            raise HTTPException(status_code=400, detail=result["error"])
-        
+            file_path.unlink() 
+            raise HTTPException(status_code=400, detail=ErrorResponse(error=result["error"]).dict())
+        if not all(key in result for key in required_keys):
+            file_path.unlink()
+            raise HTTPException(status_code=500, detail=ErrorResponse(error="Invalid predictor output").dict())
+
         prediction = PestDetectionResult(
-
             predicted_class=result["pest"],
-            date=datetime.utcnow(),
-            confidence=float(result["confidence"].rstrip("%")),
+            date=datetime.now(timezone.utc),
+            confidence=float(result["confidence"].rstrip("%")) / 100, 
             image_url=str(file_path),
-            reccomendation=result['reccomendation']
-
+            recommendation=result["recommendation"]
         )
         db.add(prediction)
         db.commit()
-        
-        return PestPredictionResponse(**result)
+        logger.info(f"Pest prediction successful: {result['pest']}, confidence: {result['confidence']}")
+
+        return PestPredictionResponse(
+            pest=result["pest"],
+            confidence=float(result["confidence"].rstrip("%")) / 100, 
+            message="Pest prediction successful",
+            recommendation=result["recommendation"],
+            image_url=str(file_path)
+        )
     except Exception as e:
+        if file_path.exists():
+            file_path.unlink() 
         logger.error(f"Pest prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=ErrorResponse(error=f"Prediction failed: {str(e)}").dict())
 
 @router.post("/disease", response_model=DiseasePredictionResponse)
 async def predict_disease(
@@ -70,8 +87,11 @@ async def predict_disease(
     try:
         logger.info(f"Processing disease prediction for file: {file.filename}")
         if not file.content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="File must be an image")
-        
+            raise HTTPException(status_code=400, detail=ErrorResponse(error="File must be an image").dict())
+        allowed_extensions = {".jpg", ".jpeg", ".png"}
+        if not any(file.filename.lower().endswith(ext) for ext in allowed_extensions):
+            raise HTTPException(status_code=400, detail=ErrorResponse(error="Invalid file extension").dict())
+
         upload_dir = Path("data/uploads")
         upload_dir.mkdir(exist_ok=True)
         file_id = str(uuid.uuid4())
@@ -80,22 +100,37 @@ async def predict_disease(
         image_data = await file.read()
         with open(file_path, "wb") as f:
             f.write(image_data)
-        
+
         result = predictor.predict(image_data)
+        required_keys = {"disease", "confidence", "recommendation"}
         if "error" in result:
-            raise HTTPException(status_code=400, detail=result["error"])
-        
+            file_path.unlink()
+            raise HTTPException(status_code=400, detail=ErrorResponse(error=result["error"]).dict())
+        if not all(key in result for key in required_keys):
+            file_path.unlink()
+            raise HTTPException(status_code=500, detail=ErrorResponse(error="Invalid predictor output").dict())
+
         prediction = DiseaseDetectionResult(
             predicted_class=result["disease"],
-            date=datetime.utcnow(),
-            confidence=float(result["confidence"].rstrip("%")),
+            crop_type=None,  
+            date=datetime.now(timezone.utc),
+            confidence=float(result["confidence"].rstrip("%")) / 100,  
             image_url=str(file_path),
-            reccomendation=result['reccomendation']
+            recommendation=result["recommendation"]
         )
         db.add(prediction)
         db.commit()
-        
-        return DiseasePredictionResponse(**result)
+        logger.info(f"Disease prediction successful: {result['disease']}, confidence: {result['confidence']}")
+
+        return DiseasePredictionResponse(
+            disease=result["disease"],
+            confidence=float(result["confidence"].rstrip("%")) / 100, 
+            message="Disease prediction successful",
+            recommendation=result["recommendation"],
+            image_url=str(file_path)
+        )
     except Exception as e:
+        if file_path.exists():
+            file_path.unlink()
         logger.error(f"Disease prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=ErrorResponse(error=f"Prediction failed: {str(e)}").dict())

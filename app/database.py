@@ -1,18 +1,26 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+import os
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from .utils.logging import setup_logger
+from .utils.logger import setup_logger
 
 logger = setup_logger()
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///data/results.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'data/results.db')}"
+
+os.makedirs(os.path.dirname(SQLALCHEMY_DATABASE_URL.replace("sqlite:///", "")), exist_ok=True)
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-
-Base.metadata.create_all(bind=engine)
-logger.info("Database initialized")
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize database: {e}")
+    raise
 
 def get_db():
     db = SessionLocal()

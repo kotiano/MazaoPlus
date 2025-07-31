@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict
 from PIL import Image
 import io
-from api.app.utils.logging import setup_logger
+from app.utils.logger import setup_logger
 
 logger = setup_logger()
 
@@ -50,7 +50,7 @@ CORN_DISEASE_RECOMMENDATIONS = {
 }
 
 class DiseasePredictor:
-    def __init__(self, model_path: str = "data/models/disease_model.keras"):
+    def __init__(self, model_path: str = "/home/jude/Projects/MazaoPlus/src/models/disease_model.keras"):
         self.model_path = Path(model_path)
         self.model = None
 
