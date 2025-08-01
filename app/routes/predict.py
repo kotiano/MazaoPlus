@@ -59,7 +59,6 @@ async def predict_pest(
             date=datetime.now(timezone.utc),
             confidence=float(result["confidence"].rstrip("%")) / 100, 
             image_url=str(file_path),
-            recommendation=result["recommendation"]
         )
         db.add(prediction)
         db.commit()
@@ -116,7 +115,6 @@ async def predict_disease(
             date=datetime.now(timezone.utc),
             confidence=str(float(result["confidence"].rstrip("%")) / 100),  
             image_url=str(file_path),
-            recommendation=result["recommendation"]
         )
         db.add(prediction)
         db.commit()

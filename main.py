@@ -35,7 +35,7 @@ async def shutdown_event():
 @app.get("/health")
 async def health_check():
     logger.info("Health check requested")
-    return {"status": "healthy"}
+    return {"status": "healthy", "Model Loaded":True}
 
 if __name__ == "__main__":
 

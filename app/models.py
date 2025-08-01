@@ -9,7 +9,6 @@ class PestDetectionResult(Base):
     date = Column(Date)
     confidence = Column(Float)
     image_url = Column(String, nullable=True)
-    recommendation = Column(String, nullable=True)
 
     __table_args__ = {'extend_existing': True} 
     
@@ -25,7 +24,6 @@ class DiseaseDetectionResult(Base):
     date = Column(Date)
     confidence = Column(Float)
     image_url = Column(String, nullable=True)
-    recommendation = Column(String, nullable=True)
 
     __table_args__ = {'extend_existing': True}  
 

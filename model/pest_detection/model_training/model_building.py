@@ -9,6 +9,10 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple
 from pathlib import Path
 
+
+from data_preparation.data_ingestion import load_data
+from data_preparation.data_preprocessing import preprocess
+
 import mlflow
 
 logging.basicConfig(
@@ -104,12 +108,10 @@ def main() -> tf.keras.Model:
         target_size = (224, 224, 3)
         num_classes = 8
 
-        from src.data.data_ingestion import load_data
-        from src.data.data_preprocessing import preprocess_data
 
         logging.info("Loading and preprocessing data")
         train_images, train_labels, val_images, val_labels = load_data()  
-        train_images, val_images = preprocess_data(train_images, val_images)  
+        train_images, val_images = preprocess(train_images, val_images)  
         model_instance = Model(model_path=model_path, target_size=target_size, num_classes=num_classes)
         model = model_instance.train_model(
             cleaned_images=train_images,

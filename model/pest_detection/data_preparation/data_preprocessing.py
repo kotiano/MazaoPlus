@@ -8,6 +8,9 @@ from typing import Tuple, List
 from pathlib import Path
 import mlflow 
 
+from data_ingestion import load_data
+
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -141,7 +144,6 @@ def main() -> None:
     try:
         logging.info("Starting preprocessing pipeline")
         
-        from src.data.data_ingestion import load_data
         logging.info("Loading data")
         train_df, test_df = load_data(data_dir="data/raw")
 

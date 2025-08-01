@@ -5,49 +5,13 @@ from typing import Dict
 from PIL import Image
 import io
 from app.utils.logger import setup_logger
+from .reccomendations import disease_reccomendations
 
 logger = setup_logger()
 
 CLASS_NAMES = ["Blight", "Common_Rust", "Gray_Leaf_Spot", "Healthy"]
+DISEASE_RECOMMENDATIONS=disease_reccomendations()
 
-CORN_DISEASE_RECOMMENDATIONS = {
-    "Blight": (
-        "Northern Corn Leaf Blight (NCLB), caused by Exserohilum turcicum, forms 1-6 inch cigar-shaped, gray-green to tan lesions on leaves, starting lower.\n"
-        "Control methods:\n"
-        "- Choose hybrids with partial or race-specific resistance (Ht1, Ht2, or HtN genes).\n"
-        "- Scout fields weekly before silking; look for lesions on lower leaves.\n"
-        "- Rotate with non-host crops (e.g., wheat) for 1-2 years.\n"
-        "- Bury crop debris by plowing.\n"
-        "- Plant early to avoid peak humidity periods.\n"
-        "- Use fungicides (e.g., Delaro® Complete) if lesions reach the third leaf below the ear on 50% of plants at tasseling."
-    ),
-    "Common_Rust": (
-        "Common Rust, caused by Puccinia sorghi, appears as small, oval, dark-reddish-brown pustules on both leaf surfaces.\n"
-        "Control methods:\n"
-        "- Plant resistant corn hybrids.\n"
-        "- Scout fields weekly from V10-V14; remove affected leaves if limited.\n"
-        "- Rotate crops yearly with non-hosts (e.g., soybeans).\n"
-        "- Plow crop residues.\n"
-        "- Avoid humid areas; ensure good air circulation.\n"
-        "- Apply foliar fungicides (e.g., azoxystrobin) if pustules cover 50% of leaves before tasseling."
-    ),
-    "Gray_Leaf_Spot": (
-        "Gray Leaf Spot, caused by Cercospora zeae-maydis, appears as rectangular, grayish-tan lesions with a gray-white center, often along veins.\n"
-        "Control methods:\n"
-        "- Plant resistant hybrids.\n"
-        "- Scout fields weekly during warm, humid conditions (75-85°F).\n"
-        "- Rotate with non-host crops for 1-2 years.\n"
-        "- Bury crop debris to reduce fungal spores.\n"
-        "- Apply fungicides (e.g., strobilurins) at early disease onset, typically at tasseling."
-    ),
-    "Healthy": (
-        "No disease detected. Continue regular monitoring.\n"
-        "Recommendations:\n"
-        "- Scout fields weekly for early signs of disease.\n"
-        "- Maintain crop rotation and soil health.\n"
-        "- Ensure proper irrigation."
-    )
-}
 
 class DiseasePredictor:
     def __init__(self, model_path: str = "/home/jude/Projects/MazaoPlus/src/models/disease_model.keras"):
@@ -90,7 +54,7 @@ class DiseasePredictor:
                 "disease": top_class,
                 "confidence": f"{confidence}%",
                 "message": f"I’m {confidence}% sure it’s {top_class}.",
-                "recommendation": CORN_DISEASE_RECOMMENDATIONS[top_class]
+                "recommendation": DISEASE_RECOMMENDATIONS[top_class]
             }
             logger.info(f"Prediction: {top_class} with {confidence}% confidence")
             return result
