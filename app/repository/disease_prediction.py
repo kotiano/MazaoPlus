@@ -14,7 +14,7 @@ DISEASE_RECOMMENDATIONS=disease_reccomendations()
 
 
 class DiseasePredictor:
-    def __init__(self, model_path: str = "/home/jude/Projects/MazaoPlus/src/models/disease_model.keras"):
+    def __init__(self, model_path: str = "/src/models/disease_model.keras"):
         self.model_path = Path(model_path)
         self.model = None
 
