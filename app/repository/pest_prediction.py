@@ -15,7 +15,7 @@ PEST_RECOMMENDATIONS=pest_reccomendations()
 
 
 class PestPredictor:
-    def __init__(self, model_path: str = "/home/jude/Projects/MazaoPlus/src/models/judebest.keras"):
+    def __init__(self, model_path: str = "/src/models/pest_prediction.keras"):
         self.model_path = Path(model_path)
         self.model = None
         self.preprocess_input = tf.keras.applications.efficientnet_v2.preprocess_input
